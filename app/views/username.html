@@ -1,0 +1,47 @@
+$def with (username='',question=None,game_over=False,game_complete=False,question_number=0,level=0,score=0)
+$var title: quiz
+
+<script type="text/javascript">
+    jQuery(document).ready(function(){
+    jQuery("input:text:visible:first").focus();                             
+    jQuery("#start").click(function() {
+        if (jQuery("#name").val().trim() != "") {
+            	jQuery("#quiz").submit()
+            }else{
+            	jQuery("#warning").text("Enter your name please!").css('color','red').show().fadeOut(1000);
+            	jQuery("input:text:visible:first").focus();                      
+            	return false;                                
+            }
+        });                                                     
+    });                                             
+</script>
+<div class="center">
+    <form id="quiz" action="/quiz" method="post">    
+        <p>
+            <label for="name"><h3>Enter your name</h3></label>
+            <input style="text-align:center;font-size:1.3em" type="text" class="text" name="name" size="30" maxlength="15" id="name" value=""/>
+        </p>
+        <p><span id="warning" class="validation"></span>&nbsp;</p>
+        <p><input type="image" id="start" src="/static/images/start.png" onmouseover="this.src='/static/images/startMouseOver.png';" onmouseout="this.src='/static/images/start.png';" />
+        <br>   
+    </form>
+</div>
+<div>
+    <h3>Rules:</h3>
+    <ol>        
+        <li>You start with 3 lives.</li>
+        <li>Each question has 3 multiple choice answers (Busted, Plausible, Confirmed).</li>
+        <li>Each question answered right adds 2 points to your score.</li>
+        <li>Each question answered wrong deducts 1 life from your total Lives.</li>
+        <li>You have a time limit to answer each question, or it counts wrong.</li>
+        <li>Initial time limit is 20 seconds; every 3 levels, time limit is decreased by 1 second.</li>
+        <li>Every 3 levels, you win an extra life (Your lives can be max 5).</li>
+        <li>For each level passed, you get a bonus question</li>
+        <li>Each bonus question is composed by several subquestions.</li> 
+        <li>Each subquestions answered right adds 1 to bonus multiplier.</li>
+        <li>Bonus question ends when you answer wrong or when time limit is over.</li>
+        <li>When bonus question ends, gained multiplier will be applied to your score.</li>
+        <li>Enjoy the quiz.</li>
+  
+    </ol>
+</div>

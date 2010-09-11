@@ -1,0 +1,201 @@
+$def with (username,question,game_over,game_complete,time_out,question_number,level,score,lives,timer,special_question_enabled,ranking,bonus_percentage)
+$var title: quiz
+$code:
+    if question is None:
+        correct_answer=''
+        busted=''
+        plausible=''
+        confirmed=''
+    else:
+        if special_question_enabled:
+            correct_answer=''
+            busted=''
+            plausible=''
+            confirmed=''
+            pass  
+        else:
+            correct_answer=question.get_obf_answer()
+            busted=question.get_obf_busted()
+            plausible=question.get_obf_plausible()
+            confirmed=question.get_obf_confirmed()
+<div>
+    $if game_over:
+        <script type="text/javascript">
+            jQuery(document).ready(function(){
+                jQuery('#retry').click(function() {
+                  jQuery('#retryform').submit();
+                });
+            });                                           
+        </script>
+        <div style="padding:1em;text-align:center">
+            <h1>GAME OVER</h1>
+            $if game_complete:
+                <h5>GREETINGS, YOU HAVE ANSWERED ALL THE QUESTIONS!!</h5>
+            <div style="margin-left:auto;margin-right:auto;width:20%;text-align:left">
+                <p><strong>Player:&nbsp;</strong> $username</p>
+                <p><strong>Score:&nbsp;</strong> $score points</p>
+                <p><strong>Level:&nbsp;</strong> $level</p>
+                $if ranking!=-1:
+                    <p><strong>Ranking:&nbsp;</strong><a href="/ranking/$ranking" style="color:red"><span style="color:red;font:bold">You are #$(ranking)!</span></a></p>
+            </div>
+            <br>
+            <p id="retry"><input type="image" src="/static/images/retry.png" onmouseover="this.src='/static/images/retryMouseOver.png';" onmouseout="this.src='/static/images/retry.png';"/></p>
+            <form id="retryform" action="/quiz" method="Post">
+                <input type="hidden" name="name" value="$username">
+            </form>
+        </div>
+    $else:  
+            <script type="text/javascript">
+                jQuery(document).ready(function(){
+                    jQuery("#timer").countdown({labels: ['', '', '', '', '', '', ''],labels1: ['', '', '', '', '', '', ''],until: +$timer, format: 'S',onExpiry: timerExpired});                                                                                       
+                    jQuery('#busted').click(function() {
+                         submitForm('$busted','B');
+                       });
+                    jQuery('#plausible').click(function() {
+                        submitForm('$plausible','P');
+                      });
+                    jQuery('#confirmed').click(function() {
+                      submitForm('$confirmed','C');
+                    });
+       			    jQuery("#progressbar").progressBar($bonus_percentage,{showText: false,barImage: '/static/images/progressbg_red.gif'});
+       			});                                           
+            </script>
+            <div  class="timer"><p id="timer"></p><p class="deckDescription">Seconds</p></div>                        
+            <div id="bonusCounter" class="bonus"></div>            
+            <div id="score" class="score"><p>$score</p><p class="deckDescription">Score</p></div>            
+            $if special_question_enabled:
+                <script type="text/javascript">
+                    var bonus_coefficent=1;
+                    var answered=0;
+                    showBonus(bonus_coefficent);
+                    jQuery(document).ready(function(){
+                    	jQuery('#bonusDescription').text("BONUS").css('color','red');                    
+       					  	});                    
+                    
+                    function showBonus(bonus){
+                        jQuery('#bonusCounter').text("BONUS "+bonus+"X").css('display','block')
+                    };
+                    
+                    function timerExpired() {                        
+                        checkEndBonus('false','true')
+                    }
+                    function checkEndBonus(wrong_answer,timed_out){
+                        answered++;                        
+                        if (answered=='$len(question.question_list)' || wrong_answer=='true' || timed_out=='true'){
+                            jQuery("#bonus").val(bonus_coefficent);
+                            jQuery("input:image").attr('disabled','disabled').css('opacity',0.5); 
+                            setTimeout(function() { jQuery("#bonusform").submit();  }, 500);                            
+                        }                        
+                    };   
+                </script>
+                <div style="text-align:center">
+                    <br><br><br>
+                    <h2>BONUS QUESTION</h2>
+                    <br>
+                    <form id="bonusform" action="/quiz" method="post">
+                        <input type="hidden" name="bonus" id="bonus" value="">
+                        <p style='text-align:left'>
+                            $question.description
+                        </p>
+                        <p>
+                        $for question_number,question_tmp in enumerate(question.question_list):
+                            <div id='specialQuestion$question_number' style='background-color:#D2C7AF; 1px solid #D2C7AF;margin-bottom:2px'>
+                                <p style='padding-top:1em'>$question_tmp.description</p>
+                                <p>                     
+                                	<input type="image" id="busted$question_number" src="/static/images/busted.png" onmouseover="this.src='/static/images/bustedMouseOver.png';" onmouseout="this.src='/static/images/busted.png';" />
+                            			<input type="image" id="plausible$question_number" src="/static/images/plausible.png" onmouseover="this.src='/static/images/plausibleMouseOver.png';" onmouseout="this.src='/static/images/plausible.png';"  />
+                            			<input type="image" id="confirmed$question_number" src="/static/images/confirmed.png" onmouseover="this.src='/static/images/confirmedMouseOver.png';" onmouseout="this.src='/static/images/confirmed.png';" />
+                                </p>
+                                <script type="text/javascript">                                
+                                jQuery('#busted$question_number').click(function() {                                	  
+                                    if('$question_tmp.get_obf_answer()'=='$question_tmp.get_obf_busted()'){
+                                     jQuery("#specialQuestion$question_number").css('background-color','green');
+                                     bonus_coefficent++;
+                                     showBonus(bonus_coefficent);
+                                     checkEndBonus('false','false');}
+                                     else{jQuery("#specialQuestion$question_number").css('background-color','red');checkEndBonus('true','false');}
+                                     jQuery('#busted$question_number').attr('disabled','disabled').css('opacity',0.5); 
+                                     jQuery('#plausible$question_number').attr('disabled','disabled').css('opacity',0.5);
+                                     jQuery('#confirmed$question_number').attr('disabled','disabled').css('opacity',0.5);
+                                     return false;
+                                     
+                                   });
+                                jQuery('#plausible$question_number').click(function() {
+                                    if('$question_tmp.get_obf_answer()'=='$question_tmp.get_obf_plausible()'){
+                                    jQuery("#specialQuestion$question_number").css('background-color','green');
+                                    bonus_coefficent++;showBonus(bonus_coefficent);checkEndBonus('false','false');}
+                                    else{jQuery("#specialQuestion$question_number").css('background-color','red');checkEndBonus('true','false');}
+                                    jQuery('#busted$question_number').attr('disabled','disabled').css('opacity',0.5); 
+                                    jQuery('#plausible$question_number').attr('disabled','disabled').css('opacity',0.5);
+                                    jQuery('#confirmed$question_number').attr('disabled','disabled').css('opacity',0.5);
+                                    return false;
+                                    
+                                  });
+                                jQuery('#confirmed$question_number').click(function() {
+                                    if('$question_tmp.get_obf_answer()'=='$question_tmp.get_obf_confirmed()'){
+                                        jQuery("#specialQuestion$question_number").css('background-color','green');
+                                        bonus_coefficent++;showBonus(bonus_coefficent);checkEndBonus('false','false');}
+                                    else{jQuery("#specialQuestion$question_number").css('background-color','red');checkEndBonus('true','false');}
+                                    jQuery('#busted$question_number').attr('disabled','disabled').css('opacity',0.5);
+                                    jQuery('#plausible$question_number').attr('disabled','disabled').css('opacity',0.5);
+                                    jQuery('#confirmed$question_number').attr('disabled','disabled').css('opacity',0.5);                                 
+                                    return false;
+                                });
+                                </script>
+                            </div>                        
+                    </form>
+                </div>
+            $else:
+                    <script type="text/javascript">
+                        function timerExpired() {
+                            jQuery('#timer').countdown('pause');
+                            jQuery("#timeout").val('True');
+                            jQuery('#busted').attr('disabled','disabled').css('opacity',0.5); 
+                            jQuery('#plausible').attr('disabled','disabled').css('opacity',0.5);
+                            jQuery('#confirmed').attr('disabled','disabled').css('opacity',0.5);
+                            jQuery("#info").text("TOO LATE!").fadeOut(800);
+                            setTimeout(function() { jQuery("#normalform").submit();  }, 800);
+                        };
+                        function submitForm(obf,answer) {
+                            jQuery('#timer').countdown('pause');
+                            jQuery("#answer").val(answer);
+                            jQuery('#busted').attr('disabled','disabled').css('opacity',0.5);
+                            jQuery('#plausible').attr('disabled','disabled').css('opacity',0.5);
+                            jQuery('#confirmed').attr('disabled','disabled').css('opacity',0.5);
+                            if(obf=='$correct_answer'){jQuery("#info").text("CORRECT").css('color','green').fadeOut(800);}
+                            else{jQuery("#info").text("WRONG").css('color','red').fadeOut(800);} 
+                            jQuery("#normalform").submit();
+                        }
+                    </script>
+                    <br><br><br>               
+                    <div style="text-align:center;width:100%;">
+                        <h2>Question number $question_number</h2>
+                        <form id="normalform" action="/quiz" method="post">
+                            <br>
+                            <p style='text-align:left'>
+                                $question.description
+                            </p>                            
+                            <br>
+                            <div class="info"><span id="info">&nbsp;</span><span>&nbsp;</span></div>
+                            <br>
+                            <input type="image" id="busted" src="/static/images/busted.png" onmouseover="this.src='/static/images/bustedMouseOver.png';" onmouseout="this.src='/static/images/busted.png';" />
+                            <input type="image" id="plausible"  src="/static/images/plausible.png" onmouseover="this.src='/static/images/plausibleMouseOver.png';" onmouseout="this.src='/static/images/plausible.png';"  />
+                            <input type="image" id="confirmed"  src="/static/images/confirmed.png" onmouseover="this.src='/static/images/confirmedMouseOver.png';" onmouseout="this.src='/static/images/confirmed.png';" />
+                            <input type="hidden" name="timeout" id="timeout" value="">
+                            <input type="hidden" name="answer" id="answer" value="">
+                        </form>
+                    </div>
+             <br>      
+             <div id="username" class="username"><p>$username</p><p class="deckDescription">Player</p></div>
+             <div class="progressbar">
+             		<p id="progressbar" style="margin:7px"></p><p class="deckDescription" id="bonusDescription">Bonus</p>
+             </div>
+             <div id="level" class="lives"><p>$level</p><p class="deckDescription">Level</p></div>
+             <div id="lives" class="lives"><p>            
+            	$for life in range(lives):
+             		<img src="/static/images/1up.jpg"/>
+             	</p>
+             	<p class="deckDescription">Lives</p>
+             </div>
+                          
+</div>

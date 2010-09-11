@@ -1,0 +1,37 @@
+$def with (top_players,player_ranking)
+$var title: ranking
+
+$if player_ranking!=-1:
+    <script type="text/javascript">
+        jQuery(document).ready(function(){
+            jQuery("#$(player_ranking)").css('font-size','1.3em').css('color','red');
+            jQuery('tr')[$(int(player_ranking)-10)].scrollIntoView();
+            
+                            
+        });                                             
+    </script>
+<h3 id="tables">Top 100 players ranking</h3>
+<div id="container">
+<table id="rankingtable" cellspacing="0" cellpadding="0" style="width:100%">
+<tr>
+    <th style="width:2em">Standing</th>
+    <th>Player</th>
+    <th>Level</th>
+    <th>Score</th>
+</tr>
+$for standing,player in enumerate(top_players):
+        $if standing % 2 == 0:
+            <tr id="$(standing+1)" class="even">
+        $else:
+            <tr id="$(standing+1)">
+        $if standing==0:
+            <td><img width='30px' height='15px' src="/static/images/crown.jpg"/></td>
+        $else:
+            <td>$int(standing+1)</td>
+        <td>$player.username</td>
+        <td>$player.level</td>
+        <td>$player.score</td>
+    </tr>
+<tr>
+</table>
+</div>

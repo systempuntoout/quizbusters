@@ -1,0 +1,4 @@
+*.pyc
+sessions
+web
+.DS_Store
