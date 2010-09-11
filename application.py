@@ -1,4 +1,8 @@
-#!/usr/bin/env python
+#!/home/gangsta75/opt/bin/python  
+
+import sys
+sys.path.append('/home/gangsta75/opt/lib/python/')
+
 from config import view 
 import web
 
